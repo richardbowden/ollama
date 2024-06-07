@@ -204,7 +204,8 @@ function build_static() {
             "-DLLAMA_AVX2=off",
             "-DLLAMA_AVX512=off",
             "-DLLAMA_F16C=off",
-            "-DLLAMA_FMA=off")
+            "-DLLAMA_FMA=off",
+            "-DLLAMA_OPENMP=off")
         $script:buildDir="../build/windows/${script:ARCH}_static"
         write-host "Building static library"
         build
