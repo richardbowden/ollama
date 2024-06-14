@@ -478,6 +478,47 @@ func PushHandler(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func PullAllHandler(cmd *cobra.Command, args []string) error {
+
+	client, err := api.ClientFromEnvironment()
+	if err != nil {
+		return err
+	}
+
+	models, err := client.List(cmd.Context())
+	if err != nil {
+		return err
+	}
+
+	// var data [][]string
+
+	for _, m := range models.Models {
+		// if len(args) == 0 || strings.HasPrefix(m.Name, args[0]) {
+		// 	data = append(data, []string{m.Name, m.Digest[:12], format.HumanBytes(m.Size), format.HumanTime(m.ModifiedAt, "Never")})
+		// }
+		fmt.Printf("Updating %s\n", m.Name)
+
+		err := PullHandler(cmd, []string{m.Name})
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	// table := tablewriter.NewWriter(os.Stdout)
+	// table.SetHeader([]string{"NAME", "ID", "SIZE", "MODIFIED"})
+	// table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	// table.SetAlignment(tablewriter.ALIGN_LEFT)
+	// table.SetHeaderLine(false)
+	// table.SetBorder(false)
+	// table.SetNoWhiteSpace(true)
+	// table.SetTablePadding("\t")
+	// table.AppendBulk(data)
+	// table.Render()
+	//
+	return nil
+}
+
 func ListHandler(cmd *cobra.Command, args []string) error {
 	client, err := api.ClientFromEnvironment()
 	if err != nil {
@@ -1176,6 +1217,14 @@ func NewCLI() *cobra.Command {
 		RunE:    ListHandler,
 	}
 
+	pullAllCmd := &cobra.Command{
+		Use: "pa",
+		Short: "pull all known models",
+		PreRunE: checkServerHeartbeat,
+		RunE: PullAllHandler,
+	}
+
+	pullAllCmd.Flags().Bool("insecure", false, "Use an insecure registry")
 	psCmd := &cobra.Command{
 		Use:     "ps",
 		Short:   "List running models",
@@ -1250,6 +1299,7 @@ func NewCLI() *cobra.Command {
 		psCmd,
 		copyCmd,
 		deleteCmd,
+		pullAllCmd,
 	)
 
 	return rootCmd
